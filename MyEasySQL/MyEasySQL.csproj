@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<Title>MyEasySQL</Title>
+		<Description>MyEasySQL is a lightweight C# library designed to streamline interactions with MySQL databases. It leverages Dapper for efficient data access and provides an intuitive API for performing common operations such as querying, inserting, updating and deleting records. MyEasySQL supports both synchronous and asynchronous operations, providing flexible connection management and optimised query construction for small to large applications.</Description>
+		<Authors>schwarper</Authors>
+		<Copyright>schwarper</Copyright>
+		<RepositoryUrl>https://github.com/schwarper/MyEasySQL</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<IncludeXmlDocumentation>true</IncludeXmlDocumentation>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="README.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="MySqlConnector" Version="2.4.0" />
+	</ItemGroup>
+</Project>

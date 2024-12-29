@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyEasySQL", "MyEasySQL\MyEasySQL.csproj", "{B286589E-ADB5-4252-B521-956F50B02ECB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyEasySQLTest", "MyEasySQLTest\MyEasySQLTest.csproj", "{631C3A9D-2344-44A0-BE90-34B42C866AD8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B286589E-ADB5-4252-B521-956F50B02ECB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B286589E-ADB5-4252-B521-956F50B02ECB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B286589E-ADB5-4252-B521-956F50B02ECB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B286589E-ADB5-4252-B521-956F50B02ECB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{631C3A9D-2344-44A0-BE90-34B42C866AD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{631C3A9D-2344-44A0-BE90-34B42C866AD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{631C3A9D-2344-44A0-BE90-34B42C866AD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{631C3A9D-2344-44A0-BE90-34B42C866AD8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F178E3CF-3A18-44CD-B960-A28DC998F641}
+	EndGlobalSection
+EndGlobal

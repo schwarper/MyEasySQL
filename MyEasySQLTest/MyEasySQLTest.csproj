@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<OutputType>EXE</OutputType>
+	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="Dapper" Version="2.1.35" />
+	  <PackageReference Include="MySqlConnector" Version="2.4.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="MyEasySQL">
+	    <HintPath>..\MyEasySQL\bin\Debug\net8.0\MyEasySQL.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+</Project>
