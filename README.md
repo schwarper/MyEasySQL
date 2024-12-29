@@ -34,8 +34,8 @@ await sql.CreateTable("MyTable")
 
 // 3. Insert Data into the Table
 await sql.Insert("MyTable")
-    .AddColumn("Name", "John Doe")  // Inserting the name 'John Doe'
-    .AddColumn("Age", 30)           // Inserting the age 30
+    .Value("Name", "John Doe")  // Inserting the name 'John Doe'
+    .Value("Age", 30)           // Inserting the age 30
     .ExecuteAsync();
 
 await sql.Insert("MyTable")
