@@ -37,7 +37,7 @@ public class InsertQuery
     /// <param name="value">The value to insert into the column.</param>
     /// <returns>The <see cref="InsertQuery"/> instance for method chaining.</returns>
     /// <exception cref="ArgumentException">Thrown when the column name is invalid.</exception>
-    public InsertQuery AddColumn(string column, object value)
+    public InsertQuery Value(string column, object value)
     {
         Validate(column, ValidateType.Column);
 
