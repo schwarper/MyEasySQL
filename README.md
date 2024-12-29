@@ -2,6 +2,12 @@
 # MyEasySQL
 **MyEasySQL** is a lightweight C# library designed to streamline interactions with MySQL databases. It leverages Dapper for efficient data access and provides an intuitive API for performing common operations such as querying, inserting, updating and deleting records. MyEasySQL supports both synchronous and asynchronous operations, providing flexible connection management and optimised query construction for small to large applications.
 
+# Nuget
+[![NuGet Badge](https://img.shields.io/nuget/v/MyEasySQL)](https://www.nuget.org/packages/MyEasySQL)
+
+## Installation
+Run `dotnet add package MyEasySQL`
+
 # Features
 - **CRUD Operations**: Simplified methods for inserting, updating, selecting, and deleting records with optional conditions.
 - **Database & Table Management**: Create and drop databases and tables with a fluent API.
