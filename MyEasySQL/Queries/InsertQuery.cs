@@ -48,9 +48,12 @@ public class InsertQuery
     /// <summary>
     /// Executes the INSERT query asynchronously.
     /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>
+    /// A task that represents the asynchronous operation. 
+    /// The task result contains the number of rows affected by the command.
+    /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when no values are specified for the insert operation.</exception>
-    public async Task ExecuteAsync()
+    public async Task<int> ExecuteAsync()
     {
         if (_values.Count == 0)
         {
@@ -61,6 +64,6 @@ public class InsertQuery
         string paramNames = string.Join(", ", _values.Keys.Select(k => $"@{k}"));
 
         string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames});";
-        await _database.ExecuteNonQueryAsync(query, _values);
+        return await _database.ExecuteNonQueryAsync(query, _values);
     }
 }

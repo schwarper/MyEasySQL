@@ -51,9 +51,12 @@ public class DeleteQuery(MySQL database)
     /// <summary>
     /// Executes the DELETE query asynchronously.
     /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>
+    /// A task that represents the asynchronous operation. 
+    /// The task result contains the number of rows affected by the command.
+    /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when the table name is not specified.</exception>
-    public async Task ExecuteAsync()
+    public async Task<int> ExecuteAsync()
     {
         if (string.IsNullOrWhiteSpace(_table))
         {
@@ -63,6 +66,6 @@ public class DeleteQuery(MySQL database)
         string whereClause = _conditionBuilder.BuildCondition();
         string query = $"DELETE FROM {_table} {(string.IsNullOrWhiteSpace(whereClause) ? "" : $"WHERE {whereClause}")};";
 
-        await _database.ExecuteNonQueryAsync(query, _conditionBuilder.GetParameters());
+        return await _database.ExecuteNonQueryAsync(query, _conditionBuilder.GetParameters());
     }
 }

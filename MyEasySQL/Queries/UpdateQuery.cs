@@ -65,9 +65,12 @@ public class UpdateQuery
     /// <summary>
     /// Executes the constructed UPDATE query asynchronously.
     /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>
+    /// A task that represents the asynchronous operation. 
+    /// The task result contains the number of rows affected by the command.
+    /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when no columns are set for update.</exception>
-    public async Task ExecuteAsync()
+    public async Task<int> ExecuteAsync()
     {
         if (_sets.Count == 0)
         {
@@ -89,6 +92,6 @@ public class UpdateQuery
             parameters[param.Key] = param.Value;
         }
 
-        await _database.ExecuteNonQueryAsync(query, parameters);
+        return await _database.ExecuteNonQueryAsync(query, parameters);
     }
 }

@@ -1,7 +1,8 @@
-﻿using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
+using MyEasySQL.Utils;
 using static MyEasySQL.Utils.RegexUtil;
 
 namespace MyEasySQL.Queries;
@@ -60,23 +61,41 @@ public class CreateTableQuery
             Validate(typeValue, ValidateType.TypeValue);
         }
 
-        string columnDef = $"{name} {type}" +
-                        (typeValue != null ? $"({typeValue})" : "") +
-                        (notNull ? " NOT NULL" : "") +
-                        (primaryKey ? " PRIMARY KEY" : "") +
-                        (autoIncrement ? " AUTO_INCREMENT" : "") +
-                        (unique ? " UNIQUE" : "") +
-                        (defaultValue != null ? $" DEFAULT '{defaultValue.Replace("'", "''")}'" : "");
-        _columns.Add(columnDef);
+        StringBuilder columnDefBuilder = new();
+        columnDefBuilder.Append($"{name} {type}");
+
+        if (!string.IsNullOrEmpty(typeValue))
+            columnDefBuilder.Append($"({typeValue})");
+
+        if (notNull)
+            columnDefBuilder.Append(" NOT NULL");
+
+        if (primaryKey)
+            columnDefBuilder.Append(" PRIMARY KEY");
+
+        if (autoIncrement)
+            columnDefBuilder.Append(" AUTO_INCREMENT");
+
+        if (unique)
+            columnDefBuilder.Append(" UNIQUE");
+
+        if (defaultValue != null)
+            columnDefBuilder.Append($" DEFAULT '{defaultValue.Replace("'", "''")}'");
+
+        _columns.Add(columnDefBuilder.ToString());
+
         return this;
     }
 
     /// <summary>
     /// Executes the table creation query asynchronously.
     /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>
+    /// A task that represents the asynchronous operation. 
+    /// The task result contains the number of rows affected by the command.
+    /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when no columns are defined for the table.</exception>
-    public async Task ExecuteAsync()
+    public async Task<int> ExecuteAsync()
     {
         if (_columns.Count == 0)
         {
@@ -84,6 +103,6 @@ public class CreateTableQuery
         }
 
         string query = $"CREATE TABLE IF NOT EXISTS {_table} ({string.Join(", ", _columns)});";
-        await _database.ExecuteNonQueryAsync(query);
+        return await _database.ExecuteNonQueryAsync(query);
     }
 }

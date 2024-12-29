@@ -87,10 +87,10 @@ public class MySQL
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="MySqlException">Thrown when there is an error in the database creation process.</exception>
     /// <exception cref="ArgumentException">Thrown when the database name is invalid.</exception>
-    public async Task CreateDatabase(string name)
+    public async Task<int> CreateDatabase(string name)
     {
         Validate(name, ValidateType.Database);
-        await ExecuteNonQueryAsync($"CREATE DATABASE {name}");
+        return await ExecuteNonQueryAsync($"CREATE DATABASE {name}");
     }
 
     /// <summary>
@@ -100,10 +100,10 @@ public class MySQL
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="MySqlException">Thrown when there is an error in the database dropping process.</exception>
     /// <exception cref="ArgumentException">Thrown when the database name is invalid.</exception>
-    public async Task DropDatabase(string database)
+    public async Task<int> DropDatabase(string database)
     {
         Validate(database, ValidateType.Database);
-        await ExecuteNonQueryAsync($"DROP DATABASE {database}");
+        return await ExecuteNonQueryAsync($"DROP DATABASE {database}");
     }
 
     /// <summary>
@@ -113,10 +113,10 @@ public class MySQL
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="MySqlException">Thrown when there is an error in the table dropping process.</exception>
     /// <exception cref="ArgumentException">Thrown when the table name is invalid.</exception>
-    public async Task DropTable(string table)
+    public async Task<int> DropTable(string table)
     {
         Validate(table, ValidateType.Table);
-        await ExecuteNonQueryAsync($"DROP TABLE {table}");
+        return await ExecuteNonQueryAsync($"DROP TABLE {table}");
     }
 
     /// <summary>
@@ -150,11 +150,14 @@ public class MySQL
     /// </summary>
     /// <param name="query">The SQL query to execute.</param>
     /// <param name="parameters">The parameters for the query (optional).</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>
+    /// A task that represents the asynchronous operation. 
+    /// The task result contains the number of rows affected by the command.
+    /// </returns>
     /// <exception cref="MySqlException">Thrown when there is an error in query execution.</exception>
-    internal async Task ExecuteNonQueryAsync(string query, object? parameters = null)
+    internal async Task<int> ExecuteNonQueryAsync(string query, object? parameters = null)
     {
         await using MySqlConnection connection = await GetOpenConnectionAsync();
-        await connection.ExecuteAsync(query, parameters);
+        return await connection.ExecuteAsync(query, parameters);
     }
 }
