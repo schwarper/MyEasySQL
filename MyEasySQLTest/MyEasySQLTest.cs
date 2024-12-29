@@ -39,17 +39,17 @@ class Program
     private static async Task Insert()
     {
         var query = sql.Insert("MyTable")
-            .AddColumn("Account", "schwarper")
-            .AddColumn("Password", 400)
-            .AddColumn("Verified", true)
-            .AddColumn("UniqueId", 1000);
+            .Value("Account", "schwarper")
+            .Value("Password", 400)
+            .Value("Verified", true)
+            .Value("UniqueId", 1000);
         await query.ExecuteAsync();
 
         await sql.Insert("NoteTable")
-            .AddColumn("SurName", "surn")
-            .AddColumn("Name", "nam")
-            .AddColumn("Id", 10000)
-            .AddColumn("Note", 10)
+            .Value("SurName", "surn")
+            .Value("Name", "nam")
+            .Value("Id", 10000)
+            .Value("Note", 10)
             .ExecuteAsync();
     }
 
