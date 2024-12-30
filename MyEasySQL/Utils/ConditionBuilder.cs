@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace MyEasySQL.Utils;
 
 /// <summary>
-/// Builds SQL conditions dynamically with support for parameters and logical operators.
+/// Builds SQL conditions dynamically, supporting various operators and logical operators for use in queries.
 /// </summary>
 public class ConditionBuilder
 {
@@ -12,14 +12,14 @@ public class ConditionBuilder
     private readonly Dictionary<string, object> _parameters = [];
 
     /// <summary>
-    /// Adds a condition to the condition builder.
+    /// Adds a condition to the condition builder with an optional logical operator to chain multiple conditions.
     /// </summary>
-    /// <param name="column">The name of the column.</param>
-    /// <param name="operator">The operator to use for the condition.</param>
-    /// <param name="value">The value to compare against.</param>
-    /// <param name="logicalOperator">Optional logical operator to chain conditions.</param>
-    /// <returns>The current instance of <see cref="ConditionBuilder"/>.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the operator is not recognized.</exception>
+    /// <param name="column">The name of the column to be used in the condition.</param>
+    /// <param name="operator">The SQL operator to be applied in the condition (e.g., EQUAL, GREATER THAN).</param>
+    /// <param name="value">The value to be compared with the column's value.</param>
+    /// <param name="logicalOperator">An optional logical operator (AND, OR) to combine this condition with others.</param>
+    /// <returns>The current instance of <see cref="ConditionBuilder"/> for method chaining.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the provided operator is not recognized.</exception>
     public ConditionBuilder Add(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
     {
         if (_conditions.Count > 0 && logicalOperator.HasValue)
@@ -34,11 +34,11 @@ public class ConditionBuilder
     }
 
     /// <summary>
-    /// Converts the operator enum to its string representation for SQL queries.
+    /// Converts the operator enum to its SQL string representation for use in queries.
     /// </summary>
-    /// <param name="operator">The operator to convert.</param>
-    /// <returns>A string representation of the operator.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the operator is not recognized.</exception>
+    /// <param name="operator">The operator enum to convert.</param>
+    /// <returns>A string representing the SQL operator.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the provided operator is not recognized.</exception>
     private static string OperatorToString(Operators @operator) => @operator switch
     {
         Operators.EQUAL => "=",
@@ -55,14 +55,14 @@ public class ConditionBuilder
     };
 
     /// <summary>
-    /// Builds the complete SQL condition string.
+    /// Builds the complete SQL condition string by combining all added conditions.
     /// </summary>
-    /// <returns>The SQL condition string.</returns>
+    /// <returns>A string representing the full condition expression for the SQL query.</returns>
     public string BuildCondition() => string.Join(" ", _conditions);
 
     /// <summary>
-    /// Retrieves the parameters for the SQL query.
+    /// Retrieves the parameters for the SQL query, including column values and their associated parameter names.
     /// </summary>
-    /// <returns>A dictionary of parameter names and their corresponding values.</returns>
+    /// <returns>A dictionary where the key is the parameter name and the value is the corresponding parameter value.</returns>
     public Dictionary<string, object> GetParameters() => _parameters;
 }

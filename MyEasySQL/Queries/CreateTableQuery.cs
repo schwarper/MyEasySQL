@@ -8,7 +8,8 @@ using static MyEasySQL.Utils.RegexUtil;
 namespace MyEasySQL.Queries;
 
 /// <summary>
-/// Provides functionality to create a table in the database with specified columns and constraints.
+/// Represents a query for creating a table in the database with specified columns and constraints.
+/// Provides methods for adding columns and constraints, and executing the creation query.
 /// </summary>
 public class CreateTableQuery
 {
@@ -19,10 +20,10 @@ public class CreateTableQuery
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateTableQuery"/> class.
     /// </summary>
-    /// <param name="database">The database instance to execute the query on.</param>
-    /// <param name="table">The name of the table to create.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the database is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when the table name is invalid.</exception>
+    /// <param name="database">The instance of the database to execute the query on.</param>
+    /// <param name="table">The name of the table to be created.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="database"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the <paramref name="table"/> name is invalid.</exception>
     public CreateTableQuery(MySQL database, string table)
     {
         Validate(table, ValidateType.Table);
@@ -33,16 +34,17 @@ public class CreateTableQuery
 
     /// <summary>
     /// Adds a column definition to the table creation query.
+    /// This method allows the specification of column properties such as data type, constraints, and default values.
     /// </summary>
-    /// <param name="name">The name of the column.</param>
-    /// <param name="type">The data type of the column.</param>
-    /// <param name="typeValue">Optional type value (e.g., length for varchar).</param>
-    /// <param name="notNull">Specifies whether the column is NOT NULL.</param>
-    /// <param name="autoIncrement">Specifies whether the column is AUTO_INCREMENT.</param>
-    /// <param name="unique">Specifies whether the column is UNIQUE.</param>
-    /// <param name="primaryKey">Specifies whether the column is the PRIMARY KEY.</param>
+    /// <param name="name">The name of the column to be added.</param>
+    /// <param name="type">The data type of the column (e.g., INT, VARCHAR).</param>
+    /// <param name="typeValue">Optional size or precision for the data type (e.g., length for VARCHAR).</param>
+    /// <param name="notNull">Indicates whether the column should be defined as NOT NULL.</param>
+    /// <param name="autoIncrement">Indicates whether the column should be set as AUTO_INCREMENT.</param>
+    /// <param name="unique">Indicates whether the column should be unique.</param>
+    /// <param name="primaryKey">Indicates whether the column is a primary key.</param>
     /// <param name="defaultValue">Specifies a default value for the column.</param>
-    /// <returns>The <see cref="CreateTableQuery"/> instance for method chaining.</returns>
+    /// <returns>The current <see cref="CreateTableQuery"/> instance, allowing for method chaining.</returns>
     /// <exception cref="ArgumentException">Thrown when the column name or type value is invalid.</exception>
     public CreateTableQuery AddColumn(
         string name,
@@ -91,10 +93,10 @@ public class CreateTableQuery
     /// Executes the table creation query asynchronously.
     /// </summary>
     /// <returns>
-    /// A task that represents the asynchronous operation. 
-    /// The task result contains the number of rows affected by the command.
+    /// A <see cref="Task"/> representing the asynchronous operation. 
+    /// The task result contains the number of rows affected by the query.
     /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown when no columns are defined for the table.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when no columns have been defined for the table.</exception>
     public async Task<int> ExecuteAsync()
     {
         if (_columns.Count == 0)

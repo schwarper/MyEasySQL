@@ -7,7 +7,8 @@ using static MyEasySQL.Utils.RegexUtil;
 namespace MyEasySQL.Queries;
 
 /// <summary>
-/// Provides functionality to build and execute INSERT queries on a specified table.
+/// Represents an INSERT query builder for inserting data into a specified table.
+/// Provides methods to specify columns and values, and execute the query asynchronously.
 /// </summary>
 public class InsertQuery
 {
@@ -20,8 +21,8 @@ public class InsertQuery
     /// </summary>
     /// <param name="database">The database instance to execute the query on.</param>
     /// <param name="table">The name of the table to insert data into.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the database is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when the table name is invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="database"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the <paramref name="table"/> name is invalid.</exception>
     public InsertQuery(MySQL database, string table)
     {
         Validate(table, ValidateType.Table);
@@ -31,12 +32,12 @@ public class InsertQuery
     }
 
     /// <summary>
-    /// Adds a column and its value to the INSERT query.
+    /// Adds a column and its corresponding value to the INSERT query.
     /// </summary>
-    /// <param name="column">The name of the column.</param>
-    /// <param name="value">The value to insert into the column.</param>
-    /// <returns>The <see cref="InsertQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentException">Thrown when the column name is invalid.</exception>
+    /// <param name="column">The name of the column to insert data into.</param>
+    /// <param name="value">The value to insert into the specified column.</param>
+    /// <returns>The current <see cref="InsertQuery"/> instance, allowing for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when the <paramref name="column"/> name is invalid.</exception>
     public InsertQuery Value(string column, object value)
     {
         Validate(column, ValidateType.Column);
@@ -46,11 +47,10 @@ public class InsertQuery
     }
 
     /// <summary>
-    /// Executes the INSERT query asynchronously.
+    /// Executes the INSERT query asynchronously and inserts the specified data into the table.
     /// </summary>
     /// <returns>
-    /// A task that represents the asynchronous operation. 
-    /// The task result contains the number of rows affected by the command.
+    /// A task that represents the asynchronous operation. The task result contains the number of rows affected by the command.
     /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when no values are specified for the insert operation.</exception>
     public async Task<int> ExecuteAsync()
