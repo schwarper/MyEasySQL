@@ -55,7 +55,7 @@ public class SQLSerializer
             Email = "test@test.com"
         };
 
-        await sql.InsertSerialized(column, "MyTableSerialized")
+        await sql.InsertSerialized("MyTableSerialized", column)
             .ExecuteAsync();
     }
 
@@ -75,7 +75,7 @@ public class SQLSerializer
         firstColumn.Status = "active";
         firstColumn.Verified = true;
 
-        await sql.UpdateSerialized(firstColumn, "MyTableSerialized")
+        await sql.UpdateSerialized("MyTableSerialized", firstColumn)
             .ExecuteAsync();
     }
 

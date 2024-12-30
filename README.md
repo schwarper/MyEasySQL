@@ -108,21 +108,19 @@ await sql.CreateTableSerialized<MyTableSerialized>("MyTableSerialized")
     .ExecuteAsync();
 
 // 2. Insert Data into the Table
-await sql.InsertSerialized(new MyTableSerialized()
+await sql.InsertSerialized("MyTableSerialized", new MyTableSerialized()
 {
     Account = "schwarper",
     Password = 1234567,
     Status = "enabled"
-},
-"MyTableSerialized")
+})
     .ExecuteAsync();
 
 // 3. Update Data in the Table
-await sql.UpdateSerialized(new MyTableSerialized()
+await sql.UpdateSerialized("MyTableSerialized", new MyTableSerialized()
 {
     Password = 1234567890
-},
-"MyTableSerialized")
+})
     .Where("Account", Operators.EQUAL, "schwarper")
     .ExecuteAsync();
 
@@ -141,6 +139,6 @@ if (person == null)
 }
 
 person.Email = "test@test.com";
-await sql.UpdateSerialized(person, "MyTableSerialized")
+await sql.UpdateSerialized("MyTableSerialized", person)
     .ExecuteAsync();
 ```

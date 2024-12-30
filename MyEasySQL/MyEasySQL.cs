@@ -72,11 +72,11 @@ public class MySQL
     /// <summary>
     /// Initializes a new instance of the <see cref="InsertSerializedQuery{T}"/> class for inserting data.
     /// </summary>
-    /// <param name="instance">The object containing data to insert.</param>
     /// <param name="table">The name of the table to insert data into.</param>
+    /// <param name="instance">The object containing data to insert.</param>
     /// <returns>An instance of <see cref="InsertSerializedQuery{T}"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the instance or table is null.</exception>
-    public InsertSerializedQuery<T> InsertSerialized<T>(T instance, string table) where T : class, new() => new(this, table, instance);
+    public InsertSerializedQuery<T> InsertSerialized<T>(string table, T instance) where T : class, new() => new(this, table, instance);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateQuery"/> class for updating data.
@@ -89,11 +89,11 @@ public class MySQL
     /// Creates a new instance of <see cref="SerializedUpdateQuery{T}"/> and initializes it with the specified object.
     /// </summary>
     /// <typeparam name="T">The type of the object to serialize and update.</typeparam>
-    /// <param name="instance">The object to update.</param>
     /// <param name="table">The name of the table to update.</param>
+    /// <param name="instance">The object to update.</param>
     /// <returns>An initialized <see cref="SerializedUpdateQuery{T}"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if the instance is null.</exception>
-    public SerializedUpdateQuery<T> UpdateSerialized<T>(T instance, string table) where T : class, new()
+    public SerializedUpdateQuery<T> UpdateSerialized<T>(string table, T instance) where T : class, new()
     {
         ArgumentNullException.ThrowIfNull(instance);
 
