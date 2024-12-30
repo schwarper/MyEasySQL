@@ -76,3 +76,69 @@ await sql.DropTable("MyTable");  // Dropping (deleting) the 'MyTable' table
 await sql.DropDatabase("MyDatabase");  // Dropping (deleting) the 'MyDatabase' database
 
 ```
+
+# Example Serialized
+```csharp
+public class MyTableSerialized
+{
+    [ColumnNotNull]
+    public string Account { get; set; } = string.Empty;
+
+    public int Password { get; set; }
+
+    [ColumnDefaultValue("active")]
+    public string? Status { get; set; }
+
+    [ColumnDefaultValue(0)]
+    public bool Verified { get; set; }
+
+    [ColumnUnique]
+    public string? Email { get; set; }
+
+    [ColumnPrimaryKey]
+    [ColumnAutoIncrement]
+    [ColumnNotNull]
+    public int UniqueId { get; set; }
+}
+
+var sql = new MySQL("host", "name", "user", "password");
+
+// 1. Create Table
+await sql.CreateTableSerialized<MyTableSerialized>("MyTableSerialized")
+    .ExecuteAsync();
+
+// 2. Insert Data into the Table
+await sql.InsertSerialized("MyTableSerialized", new MyTableSerialized()
+{
+    Account = "schwarper",
+    Password = 1234567,
+    Status = "enabled"
+})
+    .ExecuteAsync();
+
+// 3. Update Data in the Table
+await sql.UpdateSerialized("MyTableSerialized", new MyTableSerialized()
+{
+    Password = 1234567890
+})
+    .Where("Account", Operators.EQUAL, "schwarper")
+    .ExecuteAsync();
+
+// 4. Select Data from the Table
+var result = await sql.SelectSerialized<MyTableSerialized>()
+    .From("MyTableSerialized")
+    .Limit(1)
+    .ReadAsync();
+
+// 5. Select and Update
+var person = result.FirstOrDefault();
+
+if (person == null)
+{
+    return;
+}
+
+person.Email = "test@test.com";
+await sql.UpdateSerialized("MyTableSerialized", person)
+    .ExecuteAsync();
+```

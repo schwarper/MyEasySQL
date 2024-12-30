@@ -16,6 +16,8 @@ class Program
         await Update();
         await Select();
         await Delete();
+
+        await SQLSerializer.Main();
     }
 
     private static async Task CreateTable()

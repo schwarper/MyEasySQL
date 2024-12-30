@@ -1,14 +1,15 @@
-﻿using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MyEasySQL.Utils;
 using static MyEasySQL.Utils.RegexUtil;
 
 namespace MyEasySQL.Queries;
 
 /// <summary>
 /// Provides functionality to construct and execute an SQL UPDATE query.
+/// Allows the user to specify columns to update, conditions, and execute the query asynchronously.
 /// </summary>
 public class UpdateQuery
 {
@@ -35,6 +36,7 @@ public class UpdateQuery
 
     /// <summary>
     /// Specifies a column and value to set in the UPDATE query.
+    /// Adds the column to the update set and associates it with the specified value.
     /// </summary>
     /// <param name="column">The name of the column to update.</param>
     /// <param name="value">The value to set the column to.</param>
@@ -50,6 +52,7 @@ public class UpdateQuery
 
     /// <summary>
     /// Adds a WHERE condition to the UPDATE query.
+    /// Specifies the conditions under which the update should occur.
     /// </summary>
     /// <param name="column">The column to filter on.</param>
     /// <param name="operator">The operator to use in the condition (e.g., EQUAL, NOT_EQUAL).</param>
@@ -64,6 +67,7 @@ public class UpdateQuery
 
     /// <summary>
     /// Executes the constructed UPDATE query asynchronously.
+    /// Updates the specified columns in the table based on the provided conditions.
     /// </summary>
     /// <returns>
     /// A task that represents the asynchronous operation. 

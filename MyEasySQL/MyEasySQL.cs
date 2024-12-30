@@ -1,10 +1,11 @@
-﻿using Dapper;
-using MySqlConnector;
-using MyEasySQL.Queries;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dapper;
+using MyEasySQL.Queries;
+using MyEasySQL.SerializedQueries;
+using MySqlConnector;
 using static MyEasySQL.Utils.RegexUtil;
-using System;
 
 namespace MyEasySQL;
 
@@ -54,11 +55,28 @@ public class MySQL
     public CreateTableQuery CreateTable(string table) => new(this, table);
 
     /// <summary>
+    /// Creates a new instance of the <see cref="CreateTableSerializedQuery{T}"/> class for table creation.
+    /// </summary>
+    /// <typeparam name="T">The type of the class representing the table schema.</typeparam>
+    /// <param name="table">The name of the table to create.</param>
+    /// <returns>A new instance of the <see cref="CreateTableSerializedQuery{T}"/> class.</returns>
+    public CreateTableSerializedQuery<T> CreateTableSerialized<T>(string table) where T : class, new() => new(this, table);
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="InsertQuery"/> class for inserting data.
     /// </summary>
     /// <param name="table">The name of the table to insert data into.</param>
     /// <returns>An instance of <see cref="InsertQuery"/>.</returns>
     public InsertQuery Insert(string table) => new(this, table);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InsertSerializedQuery{T}"/> class for inserting data.
+    /// </summary>
+    /// <param name="table">The name of the table to insert data into.</param>
+    /// <param name="instance">The object containing data to insert.</param>
+    /// <returns>An instance of <see cref="InsertSerializedQuery{T}"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the instance or table is null.</exception>
+    public InsertSerializedQuery<T> InsertSerialized<T>(string table, T instance) where T : class, new() => new(this, table, instance);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateQuery"/> class for updating data.
@@ -68,11 +86,33 @@ public class MySQL
     public UpdateQuery Update(string table) => new(this, table);
 
     /// <summary>
+    /// Creates a new instance of <see cref="SerializedUpdateQuery{T}"/> and initializes it with the specified object.
+    /// </summary>
+    /// <typeparam name="T">The type of the object to serialize and update.</typeparam>
+    /// <param name="table">The name of the table to update.</param>
+    /// <param name="instance">The object to update.</param>
+    /// <returns>An initialized <see cref="SerializedUpdateQuery{T}"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if the instance is null.</exception>
+    public SerializedUpdateQuery<T> UpdateSerialized<T>(string table, T instance) where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+
+        return new SerializedUpdateQuery<T>(this, table)
+            .SetObject(instance);
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="SelectQuery"/> class for selecting data.
     /// </summary>
     /// <param name="columns">The columns to select.</param>
     /// <returns>An instance of <see cref="SelectQuery"/>.</returns>
     public SelectQuery Select(params string[] columns) => new(this, columns);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SerializedSelectQuery{T}"/> class for selecting data.
+    /// </summary>
+    /// <returns>An instance of <see cref="SerializedSelectQuery{T}"/>.</returns>
+    public SerializedSelectQuery<T> SelectSerialized<T>() where T : class, new() => new(this);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DeleteQuery"/> class for deleting data.

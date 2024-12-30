@@ -1,13 +1,14 @@
-﻿using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MyEasySQL.Utils;
 using static MyEasySQL.Utils.RegexUtil;
 
 namespace MyEasySQL.Queries;
 
 /// <summary>
 /// Provides functionality to build and execute SELECT queries on a specified table.
+/// Allows the user to specify columns, conditions, sorting, and limits for the query.
 /// </summary>
 public class SelectQuery
 {
@@ -57,12 +58,12 @@ public class SelectQuery
     }
 
     /// <summary>
-    /// Adds a WHERE clause to the SELECT query.
+    /// Adds a WHERE clause to the SELECT query to filter results based on a condition.
     /// </summary>
     /// <param name="column">The column name to filter by.</param>
-    /// <param name="operator">The comparison operator to use.</param>
-    /// <param name="value">The value to compare the column to.</param>
-    /// <param name="logicalOperator">The logical operator to chain conditions (default is AND).</param>
+    /// <param name="operator">The comparison operator to use in the condition.</param>
+    /// <param name="value">The value to compare the column against.</param>
+    /// <param name="logicalOperator">The logical operator to chain multiple conditions (default is AND).</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
     public SelectQuery Where(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
     {
@@ -71,10 +72,10 @@ public class SelectQuery
     }
 
     /// <summary>
-    /// Adds an ORDER BY clause to the SELECT query.
+    /// Adds an ORDER BY clause to the SELECT query to sort the results.
     /// </summary>
-    /// <param name="column">The column to order by.</param>
-    /// <param name="orderType">The type of ordering (ASC or DESC).</param>
+    /// <param name="column">The column to sort the results by.</param>
+    /// <param name="orderType">The sorting order (ASC for ascending or DESC for descending).</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
     /// <exception cref="ArgumentException">Thrown when the column name is invalid.</exception>
     public SelectQuery OrderBy(string column, OrderType orderType)
@@ -87,11 +88,11 @@ public class SelectQuery
     }
 
     /// <summary>
-    /// Adds a LIMIT clause to the SELECT query.
+    /// Adds a LIMIT clause to the SELECT query to restrict the number of rows returned.
     /// </summary>
     /// <param name="limit">The maximum number of rows to return.</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the limit is less than or equal to zero.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the specified limit is less than or equal to zero.</exception>
     public SelectQuery Limit(int limit)
     {
         if (limit <= 0)
@@ -106,8 +107,8 @@ public class SelectQuery
     /// <summary>
     /// Executes the SELECT query asynchronously and retrieves the results.
     /// </summary>
-    /// <typeparam name="T">The type of the result objects.</typeparam>
-    /// <returns>An enumerable collection of results.</returns>
+    /// <typeparam name="T">The type of the result objects to return.</typeparam>
+    /// <returns>An enumerable collection of results of type <typeparamref name="T"/>.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the table name is not specified.</exception>
     public async Task<IEnumerable<T>> ReadAsync<T>()
     {
