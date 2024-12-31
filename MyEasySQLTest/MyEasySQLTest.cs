@@ -17,7 +17,7 @@ class Program
         await Select();
         await Delete();
 
-        await SQLSerializer.Main();
+        await SQLSerializer.MainSerialized();
     }
 
     private static async Task CreateTable()
@@ -44,7 +44,8 @@ class Program
             .Value("Account", "schwarper")
             .Value("Password", 400)
             .Value("Verified", true)
-            .Value("UniqueId", 1000);
+            .Value("UniqueId", 1000)
+            .OnDuplicateKeyUpdate("Account", "schwarper1")
         await query.ExecuteAsync();
 
         await sql.Insert("NoteTable")

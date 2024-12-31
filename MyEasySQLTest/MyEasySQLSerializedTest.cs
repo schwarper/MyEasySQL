@@ -31,7 +31,7 @@ public class SQLSerializer
         public int UniqueId { get; set; }
     }
 
-    public async static Task Main()
+    public async static Task MainSerialized()
     {
         await CreateTable();
         await Insert();

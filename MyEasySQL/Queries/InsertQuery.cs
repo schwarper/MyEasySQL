@@ -15,6 +15,7 @@ public class InsertQuery
     private readonly MySQL _database;
     private readonly string _table;
     private readonly Dictionary<string, object> _values = [];
+    private readonly Dictionary<string, object> _updateParameters = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InsertQuery"/> class.
@@ -47,10 +48,26 @@ public class InsertQuery
     }
 
     /// <summary>
+    /// Specifies the columns and values to update in case of a duplicate key.
+    /// </summary>
+    /// <param name="column">The column to update.</param>
+    /// <param name="value">The value to update the column with.</param>
+    /// <returns>The current <see cref="InsertQuery"/> instance, allowing for method chaining.</returns>
+    public InsertQuery OnDuplicateKeyUpdate(string column, object value)
+    {
+        Validate(column, ValidateType.Column);
+
+        _updateParameters[column] = value ?? DBNull.Value;
+        return this;
+    }
+
+    /// <summary>
     /// Executes the INSERT query asynchronously and inserts the specified data into the table.
+    /// If duplicate keys are found, updates the specified columns.
     /// </summary>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains the number of rows affected by the command.
+    /// The task result contains the number of rows affected by the command.
     /// </returns>
     /// <exception cref="InvalidOperationException">Thrown when no values are specified for the insert operation.</exception>
     public async Task<int> ExecuteAsync()
@@ -62,8 +79,21 @@ public class InsertQuery
 
         string columns = string.Join(", ", _values.Keys);
         string paramNames = string.Join(", ", _values.Keys.Select(k => $"@{k}"));
+        string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames})";
 
-        string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames});";
+        if (_updateParameters.Count > 0)
+        {
+            string updateClause = string.Join(", ", _updateParameters.Keys.Select(k => $"{k} = @{k}_update"));
+
+            query += $" ON DUPLICATE KEY UPDATE {updateClause}";
+
+            foreach (var key in _updateParameters.Keys)
+            {
+                _values[$"{key}_update"] = _updateParameters[key];
+            }
+        }
+
+        query += ";";
         return await _database.ExecuteNonQueryAsync(query, _values);
     }
 }
