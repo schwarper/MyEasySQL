@@ -45,7 +45,7 @@ class Program
             .Value("Password", 400)
             .Value("Verified", true)
             .Value("UniqueId", 1000)
-            .OnDuplicateKeyUpdate("Account", "schwarper1")
+            .OnDuplicateKeyUpdate("Account", "schwarper1");
         await query.ExecuteAsync();
 
         await sql.Insert("NoteTable")
