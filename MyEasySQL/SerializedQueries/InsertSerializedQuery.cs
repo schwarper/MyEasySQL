@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MyEasySQL.Queries;
 using static MyEasySQL.Utils.RegexUtil;
@@ -30,11 +31,10 @@ public class InsertSerializedQuery<T> where T : class, new()
     /// <exception cref="ArgumentNullException">Thrown when the database or instance is null.</exception>
     public InsertSerializedQuery(MySQL database, string table, T instance)
     {
+        Validate(table, ValidateType.Table);
         _database = database ?? throw new ArgumentNullException(nameof(database));
-        _table = table ?? throw new ArgumentNullException(nameof(table));
-
+        _table = table;
         ArgumentNullException.ThrowIfNull(instance);
-
         SetValuesFromObject(instance);
     }
 
@@ -62,12 +62,43 @@ public class InsertSerializedQuery<T> where T : class, new()
     /// </summary>
     /// <param name="column">The column to update.</param>
     /// <param name="value">The value to update the column with.</param>
-    /// <returns>The current <see cref="InsertQuery"/> instance, allowing for method chaining.</returns>
+    /// <returns>The current <see cref="InsertSerializedQuery{T}"/> instance, allowing for method chaining.</returns>
     public InsertSerializedQuery<T> OnDuplicateKeyUpdate(string column, object value)
     {
         Validate(column, ValidateType.Column);
-
         _updateParameters[column] = value ?? DBNull.Value;
+        return this;
+    }
+
+    /// <summary>
+    /// Specifies the columns and values to update in case of a duplicate key using a lambda expression.
+    /// </summary>
+    /// <param name="instance">The object representing the columns to update.</param>
+    /// <param name="update">A lambda expression specifying the columns and values to update.</param>
+    /// <returns>The current <see cref="InsertSerializedQuery{T}"/> instance, allowing for method chaining.</returns>
+    public InsertSerializedQuery<T> OnDuplicateKeyUpdate(T instance, Action<T> update)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(update);
+
+        T updated = new();
+        update(updated);
+
+        PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (PropertyInfo prop in properties)
+        {
+            object? updatedValue = prop.GetValue(updated);
+
+            if (updatedValue != null && !Equals(updatedValue, GetDefault(prop.PropertyType)))
+            {
+                ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
+                string columnName = columnAttr?.Name ?? prop.Name;
+
+                _updateParameters[columnName] = updatedValue;
+            }
+        }
+
         return this;
     }
 
@@ -90,12 +121,11 @@ public class InsertSerializedQuery<T> where T : class, new()
         string columns = string.Join(", ", _values.Keys);
         string paramNames = string.Join(", ", _values.Keys.Select(k => $"@{k}"));
 
-        string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames});";
+        string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames})";
 
         if (_updateParameters.Count > 0)
         {
             string updateClause = string.Join(", ", _updateParameters.Keys.Select(k => $"{k} = @{k}_update"));
-
             query += $" ON DUPLICATE KEY UPDATE {updateClause}";
 
             foreach (var key in _updateParameters.Keys)
@@ -107,4 +137,11 @@ public class InsertSerializedQuery<T> where T : class, new()
         query += ";";
         return await _database.ExecuteNonQueryAsync(query, _values);
     }
+
+    /// <summary>
+    /// Gets the default value for a given type.
+    /// </summary>
+    /// <param name="type">The type to get the default value for.</param>
+    /// <returns>The default value of the specified type.</returns>
+    private static object? GetDefault(Type type) => type.IsValueType ? Activator.CreateInstance(type) : null;
 }

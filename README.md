@@ -108,12 +108,20 @@ await sql.CreateTableSerialized<MyTableSerialized>("MyTableSerialized")
     .ExecuteAsync();
 
 // 2. Insert Data into the Table
-await sql.InsertSerialized("MyTableSerialized", new MyTableSerialized()
+var tb = new MyTableSerialized()
 {
     Account = "schwarper",
     Password = 1234567,
     Status = "enabled"
-})
+};
+
+await sql.InsertSerialized("MyTableSerialized", tb)
+    .OnDuplicateKeyUpdate(tb, (update) =>
+    {
+        update.Password = 10415;
+    })
+    //OR
+    //.OnDuplicateKeyUpdate("Password", 10415)
     .ExecuteAsync();
 
 // 3. Update Data in the Table

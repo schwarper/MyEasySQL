@@ -56,6 +56,12 @@ public class SQLSerializer
         };
 
         await sql.InsertSerialized("MyTableSerialized", column)
+            .OnDuplicateKeyUpdate(column, (update) =>
+            {
+                update.Password = 10415;
+            })
+            //OR
+            //.OnDuplicateKeyUpdate("Password", 10415)
             .ExecuteAsync();
     }
 
