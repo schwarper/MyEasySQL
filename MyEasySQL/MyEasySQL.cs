@@ -5,7 +5,7 @@ using Dapper;
 using MyEasySQL.Queries;
 using MyEasySQL.SerializedQueries;
 using MySqlConnector;
-using static MyEasySQL.Utils.RegexUtil;
+using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL;
 
@@ -52,6 +52,7 @@ public class MySQL
     /// </summary>
     /// <param name="table">The name of the table to create.</param>
     /// <returns>An instance of <see cref="CreateTableQuery"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="table"/> name is invalid.</exception>
     public CreateTableQuery CreateTable(string table) => new(this, table);
 
     /// <summary>
@@ -60,6 +61,7 @@ public class MySQL
     /// <typeparam name="T">The type of the class representing the table schema.</typeparam>
     /// <param name="table">The name of the table to create.</param>
     /// <returns>A new instance of the <see cref="CreateTableSerializedQuery{T}"/> class.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="table"/> name is invalid.</exception>
     public CreateTableSerializedQuery<T> CreateTableSerialized<T>(string table) where T : class, new() => new(this, table);
 
     /// <summary>
@@ -67,6 +69,7 @@ public class MySQL
     /// </summary>
     /// <param name="table">The name of the table to insert data into.</param>
     /// <returns>An instance of <see cref="InsertQuery"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="table"/> name is invalid.</exception>
     public InsertQuery Insert(string table) => new(this, table);
 
     /// <summary>
@@ -75,7 +78,8 @@ public class MySQL
     /// <param name="table">The name of the table to insert data into.</param>
     /// <param name="instance">The object containing data to insert.</param>
     /// <returns>An instance of <see cref="InsertSerializedQuery{T}"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when the instance or table is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="instance"/> or <paramref name="table"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="table"/> name is invalid.</exception>
     public InsertSerializedQuery<T> InsertSerialized<T>(string table, T instance) where T : class, new() => new(this, table, instance);
 
     /// <summary>
@@ -83,6 +87,7 @@ public class MySQL
     /// </summary>
     /// <param name="table">The name of the table to update data in.</param>
     /// <returns>An instance of <see cref="UpdateQuery"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="table"/> name is invalid.</exception>
     public UpdateQuery Update(string table) => new(this, table);
 
     /// <summary>
@@ -92,7 +97,8 @@ public class MySQL
     /// <param name="table">The name of the table to update.</param>
     /// <param name="instance">The object to update.</param>
     /// <returns>An initialized <see cref="SerializedUpdateQuery{T}"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if the instance is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="instance"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="table"/> name is invalid.</exception>
     public SerializedUpdateQuery<T> UpdateSerialized<T>(string table, T instance) where T : class, new()
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -106,6 +112,7 @@ public class MySQL
     /// </summary>
     /// <param name="columns">The columns to select.</param>
     /// <returns>An instance of <see cref="SelectQuery"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="columns"/> names are invalid.</exception>
     public SelectQuery Select(params string[] columns) => new(this, columns);
 
     /// <summary>
@@ -123,14 +130,14 @@ public class MySQL
     /// <summary>
     /// Creates a new database with the specified name.
     /// </summary>
-    /// <param name="name">The name of the database to create.</param>
+    /// <param name="database">The name of the database to create.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="MySqlException">Thrown when there is an error in the database creation process.</exception>
-    /// <exception cref="ArgumentException">Thrown when the database name is invalid.</exception>
-    public async Task<int> CreateDatabase(string name)
+    /// <exception cref="MySqlException">Thrown if there is an error in the database creation process.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="database"/> is invalid.</exception>
+    public async Task<int> CreateDatabase(string database)
     {
-        Validate(name, ValidateType.Database);
-        return await ExecuteNonQueryAsync($"CREATE DATABASE {name}");
+        ValidateName(database, ValidateType.Database);
+        return await ExecuteNonQueryAsync($"CREATE DATABASE {database}");
     }
 
     /// <summary>
@@ -138,11 +145,11 @@ public class MySQL
     /// </summary>
     /// <param name="database">The name of the database to drop.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="MySqlException">Thrown when there is an error in the database dropping process.</exception>
-    /// <exception cref="ArgumentException">Thrown when the database name is invalid.</exception>
+    /// <exception cref="MySqlException">Thrown if there is an error in the database dropping process.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="database"/> is invalid.</exception>
     public async Task<int> DropDatabase(string database)
     {
-        Validate(database, ValidateType.Database);
+        ValidateName(database, ValidateType.Database);
         return await ExecuteNonQueryAsync($"DROP DATABASE {database}");
     }
 
@@ -151,11 +158,11 @@ public class MySQL
     /// </summary>
     /// <param name="table">The name of the table to drop.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="MySqlException">Thrown when there is an error in the table dropping process.</exception>
-    /// <exception cref="ArgumentException">Thrown when the table name is invalid.</exception>
+    /// <exception cref="MySqlException">Thrown if there is an error in the table dropping process.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="table"/> is invalid.</exception>
     public async Task<int> DropTable(string table)
     {
-        Validate(table, ValidateType.Table);
+        ValidateName(table, ValidateType.Table);
         return await ExecuteNonQueryAsync($"DROP TABLE {table}");
     }
 
@@ -163,7 +170,7 @@ public class MySQL
     /// Gets an open MySQL connection asynchronously.
     /// </summary>
     /// <returns>An open <see cref="MySqlConnection"/>.</returns>
-    /// <exception cref="MySqlException">Thrown when there is an error in opening the connection.</exception>
+    /// <exception cref="MySqlException">Thrown if there is an error in opening the connection.</exception>
     internal async Task<MySqlConnection> GetOpenConnectionAsync()
     {
         MySqlConnection connection = new(_connectionString);
@@ -178,7 +185,7 @@ public class MySQL
     /// <param name="query">The SQL query to execute.</param>
     /// <param name="parameters">The parameters for the query (optional).</param>
     /// <returns>A collection of objects of type <typeparamref name="T"/>.</returns>
-    /// <exception cref="MySqlException">Thrown when there is an error in query execution.</exception>
+    /// <exception cref="MySqlException">Thrown if there is an error in query execution.</exception>
     internal async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string query, object? parameters = null)
     {
         await using MySqlConnection connection = await GetOpenConnectionAsync();
@@ -194,7 +201,7 @@ public class MySQL
     /// A task that represents the asynchronous operation. 
     /// The task result contains the number of rows affected by the command.
     /// </returns>
-    /// <exception cref="MySqlException">Thrown when there is an error in query execution.</exception>
+    /// <exception cref="MySqlException">Thrown if there is an error in query execution.</exception>
     internal async Task<int> ExecuteNonQueryAsync(string query, object? parameters = null)
     {
         await using MySqlConnection connection = await GetOpenConnectionAsync();

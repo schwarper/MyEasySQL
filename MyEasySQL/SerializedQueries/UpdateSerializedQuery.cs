@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using MyEasySQL.Utils;
-using static MyEasySQL.Utils.RegexUtil;
+using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.SerializedQueries;
 
@@ -26,11 +27,70 @@ public class SerializedUpdateQuery<T> where T : class, new()
     /// </summary>
     /// <param name="database">The database instance to execute the query on.</param>
     /// <param name="table">The name of the table to update.</param>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="table"/> name is invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="database"/> is null.</exception>
     public SerializedUpdateQuery(MySQL database, string table)
     {
+        ValidateName(table, ValidateType.Table);
+
         _database = database ?? throw new ArgumentNullException(nameof(database));
-        Validate(table, ValidateType.Table);
         _table = table;
+    }
+
+    /// <summary>
+    /// Adds a WHERE clause to the UPDATE query to filter results based on a condition.
+    /// </summary>
+    /// <param name="column">The column name to filter by.</param>
+    /// <param name="operator">The comparison operator to use in the condition.</param>
+    /// <param name="value">The value to compare the column against.</param>
+    /// <param name="logicalOperator">The logical operator to chain multiple conditions (default is AND).</param>
+    /// <returns>The <see cref="SerializedUpdateQuery{T}"/> instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name is invalid.</exception>
+    public SerializedUpdateQuery<T> Where(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
+    {
+        _conditionBuilder.Add(column, @operator, value, logicalOperator);
+        return this;
+    }
+
+    /// <summary>
+    /// Executes the constructed UPDATE query asynchronously.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if no columns were set for update.</exception>
+    public async Task<int> ExecuteAsync()
+    {
+        if (_sets.Count == 0)
+        {
+            throw new InvalidOperationException("No columns were set for update.");
+        }
+
+        StringBuilder builder = new();
+        builder.Append($"UPDATE {_table} SET ");
+
+        string setClause = string.Join(", ", _sets.Keys.Select(k => $"{k} = @{k}"));
+        builder.Append(setClause);
+
+        string whereClause = _conditionBuilder.BuildCondition();
+        if (!string.IsNullOrWhiteSpace(whereClause))
+        {
+            builder.Append($" WHERE {whereClause}");
+        }
+
+        builder.Append(';');
+
+        string query = builder.ToString();
+
+        foreach (KeyValuePair<string, object> set in _sets)
+        {
+            _parameters[set.Key] = set.Value;
+        }
+
+        Dictionary<string, object> parameters = _conditionBuilder.GetParameters();
+        foreach (KeyValuePair<string, object> param in _parameters)
+        {
+            parameters[param.Key] = param.Value;
+        }
+
+        return await _database.ExecuteNonQueryAsync(query, parameters);
     }
 
     /// <summary>
@@ -38,7 +98,7 @@ public class SerializedUpdateQuery<T> where T : class, new()
     /// </summary>
     /// <param name="entity">The object containing the properties and values to update.</param>
     /// <returns>The <see cref="SerializedUpdateQuery{T}"/> instance for method chaining.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the object has no properties to update.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the object has no properties to update.</exception>
     internal SerializedUpdateQuery<T> SetObject(T entity)
     {
         FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -65,43 +125,5 @@ public class SerializedUpdateQuery<T> where T : class, new()
         }
 
         return this;
-    }
-
-    /// <summary>
-    /// Adds a WHERE condition to the UPDATE query.
-    /// </summary>
-    public SerializedUpdateQuery<T> Where(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
-    {
-        _conditionBuilder.Add(column, @operator, value, logicalOperator);
-        return this;
-    }
-
-    /// <summary>
-    /// Executes the constructed UPDATE query asynchronously.
-    /// </summary>
-    public async Task<int> ExecuteAsync()
-    {
-        if (_sets.Count == 0)
-        {
-            throw new InvalidOperationException("No columns were set for update.");
-        }
-
-        foreach (KeyValuePair<string, object> set in _sets)
-        {
-            _parameters[set.Key] = set.Value;
-        }
-
-        string setClause = string.Join(", ", _sets.Keys.Select(k => $"{k} = @{k}"));
-        string whereClause = _conditionBuilder.BuildCondition();
-
-        string query = $"UPDATE {_table} SET {setClause} {(string.IsNullOrWhiteSpace(whereClause) ? "" : $"WHERE {whereClause}")};";
-
-        Dictionary<string, object> parameters = _conditionBuilder.GetParameters();
-        foreach (KeyValuePair<string, object> param in _parameters)
-        {
-            parameters[param.Key] = param.Value;
-        }
-
-        return await _database.ExecuteNonQueryAsync(query, parameters);
     }
 }

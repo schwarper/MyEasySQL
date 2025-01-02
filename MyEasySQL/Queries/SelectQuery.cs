@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using MyEasySQL.Utils;
-using static MyEasySQL.Utils.RegexUtil;
+using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.Queries;
 
@@ -25,8 +26,8 @@ public class SelectQuery
     /// </summary>
     /// <param name="database">The database instance to execute the query on.</param>
     /// <param name="columns">The columns to select in the query.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the database is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when no columns are specified or column names are invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if no <paramref name="columns"/> are specified or column names are invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="database"/> is null.</exception>
     public SelectQuery(MySQL database, params string[] columns)
     {
         if (columns.Length == 0)
@@ -36,7 +37,12 @@ public class SelectQuery
 
         foreach (string column in columns)
         {
-            Validate(column, ValidateType.Column);
+            if (column == "*")
+            {
+                continue;
+            }
+
+            ValidateName(column, ValidateType.Column);
         }
 
         _database = database ?? throw new ArgumentNullException(nameof(database));
@@ -48,10 +54,10 @@ public class SelectQuery
     /// </summary>
     /// <param name="table">The name of the table.</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentException">Thrown when the table name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="table"/> name is invalid.</exception>
     public SelectQuery From(string table)
     {
-        Validate(table, ValidateType.Table);
+        ValidateName(table, ValidateType.Table);
 
         _table = table;
         return this;
@@ -65,8 +71,11 @@ public class SelectQuery
     /// <param name="value">The value to compare the column against.</param>
     /// <param name="logicalOperator">The logical operator to chain multiple conditions (default is AND).</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name is invalid.</exception>
     public SelectQuery Where(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
     {
+        ValidateName(column, ValidateType.Column);
+
         _conditionBuilder.Add(column, @operator, value, logicalOperator);
         return this;
     }
@@ -77,10 +86,11 @@ public class SelectQuery
     /// <param name="column">The column to sort the results by.</param>
     /// <param name="orderType">The sorting order (ASC for ascending or DESC for descending).</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentException">Thrown when the column name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the column name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name is invalid.</exception>
     public SelectQuery OrderBy(string column, OrderType orderType)
     {
-        Validate(column, ValidateType.Column);
+        ValidateName(column, ValidateType.Column);
 
         _orderBy = column;
         _orderType = orderType;
@@ -92,7 +102,7 @@ public class SelectQuery
     /// </summary>
     /// <param name="limit">The maximum number of rows to return.</param>
     /// <returns>The <see cref="SelectQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the specified limit is less than or equal to zero.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the specified <paramref name="limit"/> is less than or equal to zero.</exception>
     public SelectQuery Limit(int limit)
     {
         if (limit <= 0)
@@ -109,7 +119,7 @@ public class SelectQuery
     /// </summary>
     /// <typeparam name="T">The type of the result objects to return.</typeparam>
     /// <returns>An enumerable collection of results of type <typeparamref name="T"/>.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the table name is not specified.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the table name is not specified.</exception>
     public async Task<IEnumerable<T>> ReadAsync<T>()
     {
         if (string.IsNullOrWhiteSpace(_table))
@@ -117,16 +127,26 @@ public class SelectQuery
             throw new InvalidOperationException("Table name is required.");
         }
 
+        StringBuilder builder = new();
+        builder.Append($"SELECT {_columns} FROM {_table}");
+
         string whereClause = _conditionBuilder.BuildCondition();
-        string orderByClause = _orderBy != null && _orderType.HasValue
-            ? $"ORDER BY {_orderBy} {_orderType}"
-            : string.Empty;
+        if (!string.IsNullOrWhiteSpace(whereClause))
+        {
+            builder.Append($" WHERE {whereClause}");
+        }
 
-        string limitClause = _limit.HasValue ? $"LIMIT {_limit.Value}" : string.Empty;
+        if (_orderBy != null && _orderType.HasValue)
+        {
+            builder.Append($" ORDER BY {_orderBy} {_orderType}");
+        }
 
-        string query = $"SELECT {_columns} FROM {_table} " +
-                       $"{(string.IsNullOrWhiteSpace(whereClause) ? string.Empty : $"WHERE {whereClause}")} " +
-                       $"{orderByClause} {limitClause}".Trim();
+        if (_limit.HasValue)
+        {
+            builder.Append($" LIMIT {_limit.Value}");
+        }
+
+        string query = builder.ToString().Trim();
 
         return await _database.ExecuteQueryAsync<T>(query, _conditionBuilder.GetParameters());
     }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MyEasySQL.Utils;
-using static MyEasySQL.Utils.RegexUtil;
+using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.Queries;
 
@@ -13,7 +13,7 @@ namespace MyEasySQL.Queries;
 /// Initializes a new instance of the <see cref="DeleteQuery"/> class.
 /// </remarks>
 /// <param name="database">The database instance to execute the query on.</param>
-/// <exception cref="ArgumentNullException">Thrown when the <paramref name="database"/> is null.</exception>
+/// <exception cref="ArgumentNullException">Thrown if the <paramref name="database"/> is null.</exception>
 public class DeleteQuery(MySQL database)
 {
     private readonly MySQL _database = database ?? throw new ArgumentNullException(nameof(database));
@@ -25,10 +25,10 @@ public class DeleteQuery(MySQL database)
     /// </summary>
     /// <param name="table">The name of the table to delete from.</param>
     /// <returns>The <see cref="DeleteQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentException">Thrown when the <paramref name="table"/> name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="table"/> name is invalid.</exception>
     public DeleteQuery From(string table)
     {
-        Validate(table, ValidateType.Table);
+        ValidateName(table, ValidateType.Table);
 
         _table = table;
         return this;
@@ -42,9 +42,11 @@ public class DeleteQuery(MySQL database)
     /// <param name="value">The value to compare the column against.</param>
     /// <param name="logicalOperator">The logical operator used to combine multiple conditions (default is AND).</param>
     /// <returns>The <see cref="DeleteQuery"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentException">Thrown when the <paramref name="column"/> name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name is invalid.</exception>
     public DeleteQuery Where(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
     {
+        ValidateName(column, ValidateType.Column);
+
         _conditionBuilder.Add(column, @operator, value, logicalOperator);
         return this;
     }
@@ -55,7 +57,7 @@ public class DeleteQuery(MySQL database)
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains the number of rows affected by the command.
     /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown when the table name is not specified before execution.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the table name is not specified before execution.</exception>
     public async Task<int> ExecuteAsync()
     {
         if (string.IsNullOrWhiteSpace(_table))

@@ -1,8 +1,7 @@
-﻿using MyEasySQL;
-using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MyEasySQL.Utils;
 using static MyEasySQLTest.Program;
 
 namespace MyEasySQLTest;
@@ -12,23 +11,21 @@ public class SQLSerializer
     public class MyTableSerialized
     {
         [ColumnNotNull]
-        public string Account { get; set; } = string.Empty;
+        public string Account = string.Empty;
 
-        public int Password { get; set; }
+        public int Password;
 
         [ColumnDefaultValue("active")]
-        public string? Status { get; set; }
+        public string? Status;
 
         [ColumnDefaultValue(0)]
-        public bool Verified { get; set; }
+        public bool Verified;
 
         [ColumnUnique]
-        public string? Email { get; set; }
+        public string? Email;
 
-        [ColumnPrimaryKey]
-        [ColumnAutoIncrement]
-        [ColumnNotNull]
-        public int UniqueId { get; set; }
+        [ColumnPrimaryKey, ColumnAutoIncrement, ColumnNotNull]
+        public int UniqueId;
     }
 
     public async static Task MainSerialized()
@@ -42,12 +39,14 @@ public class SQLSerializer
     private static async Task CreateTable()
     {
         await sql.CreateTableSerialized<MyTableSerialized>("MyTableSerialized")
+            // This is default true
+            .SetIfNotExist(true)
             .ExecuteAsync();
     }
 
     private static async Task Insert()
     {
-        var column = new MyTableSerialized()
+        MyTableSerialized column = new()
         {
             Account = "Mert",
             Password = 200,
@@ -56,21 +55,17 @@ public class SQLSerializer
         };
 
         await sql.InsertSerialized("MyTableSerialized", column)
-            .OnDuplicateKeyUpdate(column, (update) =>
-            {
-                update.Password = 10415;
-            })
-            //OR
-            //.OnDuplicateKeyUpdate("Password", 10415)
+            .OnDuplicateKeyUpdate("Password", "Password + 1")
+            .OnDuplicateKeyUpdate("Status", "active")
             .ExecuteAsync();
     }
 
     private static async Task Update()
     {
-        var column = await sql.SelectSerialized<MyTableSerialized>()
+        System.Collections.Generic.IEnumerable<MyTableSerialized> column = await sql.SelectSerialized<MyTableSerialized>()
             .From("MyTableSerialized").ReadAsync();
 
-        var firstColumn = column.FirstOrDefault();
+        MyTableSerialized? firstColumn = column.FirstOrDefault();
 
         if (firstColumn == null)
         {
@@ -87,13 +82,13 @@ public class SQLSerializer
 
     private static async Task Select()
     {
-        var query = await sql.SelectSerialized<MyTableSerialized>()
+        System.Collections.Generic.IEnumerable<MyTableSerialized> query = await sql.SelectSerialized<MyTableSerialized>()
             .From("MyTableSerialized")
             .ReadAsync();
 
-        foreach (var q in query)
+        foreach (MyTableSerialized q in query)
         {
-            Console.WriteLine(q.Account, q.Password, q.Email); //...
+            Console.WriteLine($"{q.Account}, {q.Password}, {q.Email}"); //...
         }
     }
 }
