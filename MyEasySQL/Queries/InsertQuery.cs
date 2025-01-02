@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MyEasySQL.SerializedQueries;
 using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.Queries;

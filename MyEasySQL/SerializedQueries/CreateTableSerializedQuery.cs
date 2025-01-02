@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using MyEasySQL.Queries;
 using MyEasySQL.Utils;
 using static MyEasySQL.Utils.Validator;
 

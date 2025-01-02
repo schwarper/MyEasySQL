@@ -4,9 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MyEasySQL.Queries;
 using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.SerializedQueries;

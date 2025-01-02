@@ -1,7 +1,7 @@
-﻿using MyEasySQL;
-using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using MyEasySQL;
+using MyEasySQL.Utils;
 
 namespace MyEasySQLTest;
 
@@ -22,7 +22,7 @@ class Program
 
     private static async Task CreateTable()
     {
-        var query = sql.CreateTable("MyTable")
+        MyEasySQL.Queries.CreateTableQuery query = sql.CreateTable("MyTable")
             .AddColumn("Account", DataTypes.VARCHAR, typeValue: "255", flag: ColumnFlags.NotNull)
             .AddColumn("Password", DataTypes.INT, flag: ColumnFlags.NotNull)
             .AddColumn("Status", DataTypes.TEXT, flag: ColumnFlags.NotNull, defaultValue: "active")
@@ -40,7 +40,7 @@ class Program
 
     private static async Task Insert()
     {
-        var query = sql.Insert("MyTable")
+        MyEasySQL.Queries.InsertQuery query = sql.Insert("MyTable")
             .Value("Account", "schwarper")
             .Value("Password", 400)
             .Value("Verified", true)
@@ -58,7 +58,7 @@ class Program
 
     private static async Task Update()
     {
-        var query = sql.Update("MyTable")
+        MyEasySQL.Queries.UpdateQuery query = sql.Update("MyTable")
             .Set("Verified", false)
             .Set("Password", 100)
             .Where("UniqueId", Operators.EQUAL, 1000)
@@ -72,23 +72,23 @@ class Program
 
     private static async Task Select()
     {
-        var query = await sql.Select("*")
+        System.Collections.Generic.IEnumerable<dynamic> query = await sql.Select("*")
             .From("MyTable")
             .Where("Verified", Operators.EQUAL, false)
             .Limit(1)
             .ReadAsync<dynamic>();
 
-        var query2 = await sql.Select("Name", "Note")
+        System.Collections.Generic.IEnumerable<dynamic> query2 = await sql.Select("Name", "Note")
             .From("NoteTable")
             .OrderBy("Note", OrderType.DESC)
             .ReadAsync<dynamic>();
 
-        foreach (var q in query)
+        foreach (dynamic q in query)
         {
             Console.WriteLine(q);
         }
 
-        foreach (var qq in query2)
+        foreach (dynamic qq in query2)
         {
             Console.WriteLine(qq);
         }
@@ -96,7 +96,7 @@ class Program
 
     private static async Task Delete()
     {
-        var query = sql.Delete()
+        MyEasySQL.Queries.DeleteQuery query = sql.Delete()
             .From("MyTable")
             .Where("Verified", Operators.NOT_EQUAL, true);
         await query.ExecuteAsync();

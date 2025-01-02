@@ -1,6 +1,6 @@
-﻿using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using MyEasySQL.Utils;
 using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.Queries;

@@ -1,8 +1,7 @@
-﻿using MyEasySQL;
-using MyEasySQL.Utils;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MyEasySQL.Utils;
 using static MyEasySQLTest.Program;
 
 namespace MyEasySQLTest;
@@ -47,7 +46,7 @@ public class SQLSerializer
 
     private static async Task Insert()
     {
-        var column = new MyTableSerialized()
+        MyTableSerialized column = new()
         {
             Account = "Mert",
             Password = 200,
@@ -63,10 +62,10 @@ public class SQLSerializer
 
     private static async Task Update()
     {
-        var column = await sql.SelectSerialized<MyTableSerialized>()
+        System.Collections.Generic.IEnumerable<MyTableSerialized> column = await sql.SelectSerialized<MyTableSerialized>()
             .From("MyTableSerialized").ReadAsync();
 
-        var firstColumn = column.FirstOrDefault();
+        MyTableSerialized? firstColumn = column.FirstOrDefault();
 
         if (firstColumn == null)
         {
@@ -83,11 +82,11 @@ public class SQLSerializer
 
     private static async Task Select()
     {
-        var query = await sql.SelectSerialized<MyTableSerialized>()
+        System.Collections.Generic.IEnumerable<MyTableSerialized> query = await sql.SelectSerialized<MyTableSerialized>()
             .From("MyTableSerialized")
             .ReadAsync();
 
-        foreach (var q in query)
+        foreach (MyTableSerialized q in query)
         {
             Console.WriteLine($"{q.Account}, {q.Password}, {q.Email}"); //...
         }
