@@ -45,9 +45,9 @@ public class InsertSerializedQuery<T> where T : class, new()
     /// <param name="entity">The object containing the values to insert.</param>
     private void SetValuesFromObject(T entity)
     {
-        PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-        foreach (PropertyInfo prop in properties)
+        foreach (FieldInfo prop in properties)
         {
             ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
             string columnName = columnAttr?.Name ?? prop.Name;
@@ -84,13 +84,13 @@ public class InsertSerializedQuery<T> where T : class, new()
         T updated = new();
         update(updated);
 
-        PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-        foreach (PropertyInfo prop in properties)
+        foreach (FieldInfo prop in properties)
         {
             object? updatedValue = prop.GetValue(updated);
 
-            if (updatedValue != null && !Equals(updatedValue, GetDefault(prop.PropertyType)))
+            if (updatedValue != null && !Equals(updatedValue, GetDefault(prop.FieldType)))
             {
                 ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
                 string columnName = columnAttr?.Name ?? prop.Name;
