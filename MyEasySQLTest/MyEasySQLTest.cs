@@ -23,17 +23,17 @@ class Program
     private static async Task CreateTable()
     {
         var query = sql.CreateTable("MyTable")
-            .AddColumn("Account", DataTypes.VARCHAR, typeValue: "255", notNull: true)
-            .AddColumn("Password", DataTypes.INT, notNull: true)
-            .AddColumn("Status", DataTypes.TEXT, notNull: true, defaultValue: "active")
-            .AddColumn("Verified", DataTypes.BOOLEAN, notNull: true)
-            .AddColumn("UniqueId", DataTypes.INT, primaryKey: true, unique: true);
+            .AddColumn("Account", DataTypes.VARCHAR, typeValue: "255", flag: ColumnFlags.NotNull)
+            .AddColumn("Password", DataTypes.INT, flag: ColumnFlags.NotNull)
+            .AddColumn("Status", DataTypes.TEXT, flag: ColumnFlags.NotNull, defaultValue: "active")
+            .AddColumn("Verified", DataTypes.BOOLEAN, flag: ColumnFlags.NotNull)
+            .AddColumn("UniqueId", DataTypes.INT, flag: ColumnFlags.PrimaryKey | ColumnFlags.Unique);
         await query.ExecuteAsync();
 
         await sql.CreateTable("NoteTable")
             .AddColumn("Surname", DataTypes.VARCHAR, typeValue: "255")
             .AddColumn("Name", DataTypes.VARCHAR, typeValue: "255")
-            .AddColumn("Id", DataTypes.INT, primaryKey: true, unique: true)
+            .AddColumn("Id", DataTypes.INT, flag: ColumnFlags.PrimaryKey | ColumnFlags.Unique)
             .AddColumn("Note", DataTypes.INT)
             .ExecuteAsync();
     }
@@ -72,8 +72,6 @@ class Program
 
     private static async Task Select()
     {
-        Console.WriteLine("READING");
-
         var query = await sql.Select("*")
             .From("MyTable")
             .Where("Verified", Operators.EQUAL, false)

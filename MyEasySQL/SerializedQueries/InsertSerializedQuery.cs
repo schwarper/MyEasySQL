@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MyEasySQL.Queries;
-using static MyEasySQL.Utils.RegexUtil;
+using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.SerializedQueries;
 
@@ -28,33 +29,17 @@ public class InsertSerializedQuery<T> where T : class, new()
     /// <param name="database">The database instance to execute the query on.</param>
     /// <param name="table">The name of the table to insert data into.</param>
     /// <param name="instance">The object containing data to insert.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the database or instance is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="table"/> name is invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="database"/> or <paramref name="instance"/> is null.</exception>
     public InsertSerializedQuery(MySQL database, string table, T instance)
     {
-        Validate(table, ValidateType.Table);
+        ValidateName(table, ValidateType.Table);
+        ArgumentNullException.ThrowIfNull(instance);
+
         _database = database ?? throw new ArgumentNullException(nameof(database));
         _table = table;
-        ArgumentNullException.ThrowIfNull(instance);
+
         SetValuesFromObject(instance);
-    }
-
-    /// <summary>
-    /// Adds values from a given object to the INSERT query.
-    /// This method extracts property values from the object and associates them with the corresponding table columns.
-    /// </summary>
-    /// <param name="entity">The object containing the values to insert.</param>
-    private void SetValuesFromObject(T entity)
-    {
-        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (FieldInfo prop in properties)
-        {
-            ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
-            string columnName = columnAttr?.Name ?? prop.Name;
-
-            object value = prop.GetValue(entity) ?? DBNull.Value;
-            _values[columnName] = value;
-        }
     }
 
     /// <summary>
@@ -63,40 +48,19 @@ public class InsertSerializedQuery<T> where T : class, new()
     /// <param name="column">The column to update.</param>
     /// <param name="value">The value to update the column with.</param>
     /// <returns>The current <see cref="InsertSerializedQuery{T}"/> instance, allowing for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name or <paramref name="value"/> is invalid.</exception>
     public InsertSerializedQuery<T> OnDuplicateKeyUpdate(string column, object value)
     {
-        Validate(column, ValidateType.Column);
-        _updateParameters[column] = value ?? DBNull.Value;
-        return this;
-    }
+        ValidateName(column, ValidateType.Column);
 
-    /// <summary>
-    /// Specifies the columns and values to update in case of a duplicate key using a lambda expression.
-    /// </summary>
-    /// <param name="instance">The object representing the columns to update.</param>
-    /// <param name="update">A lambda expression specifying the columns and values to update.</param>
-    /// <returns>The current <see cref="InsertSerializedQuery{T}"/> instance, allowing for method chaining.</returns>
-    public InsertSerializedQuery<T> OnDuplicateKeyUpdate(T instance, Action<T> update)
-    {
-        ArgumentNullException.ThrowIfNull(instance);
-        ArgumentNullException.ThrowIfNull(update);
-
-        T updated = new();
-        update(updated);
-
-        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (FieldInfo prop in properties)
+        if (value is string valueStr)
         {
-            object? updatedValue = prop.GetValue(updated);
-
-            if (updatedValue != null && !Equals(updatedValue, GetDefault(prop.FieldType)))
-            {
-                ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
-                string columnName = columnAttr?.Name ?? prop.Name;
-
-                _updateParameters[columnName] = updatedValue;
-            }
+            ValidateUpdateKey(valueStr);
+            _updateParameters[column] = valueStr;
+        }
+        else
+        {
+            _updateParameters[column] = value ?? DBNull.Value;
         }
 
         return this;
@@ -110,7 +74,7 @@ public class InsertSerializedQuery<T> where T : class, new()
     /// A task that represents the asynchronous operation. 
     /// The task result contains the number of rows affected by the command.
     /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown when no values are specified for the insert operation.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if no values are specified for the insert operation.</exception>
     public async Task<int> ExecuteAsync()
     {
         if (_values.Count == 0)
@@ -118,30 +82,37 @@ public class InsertSerializedQuery<T> where T : class, new()
             throw new InvalidOperationException("No values specified for insert operation.");
         }
 
+        StringBuilder builder = new();
+        builder.Append($"INSERT INTO {_table} ");
+
         string columns = string.Join(", ", _values.Keys);
         string paramNames = string.Join(", ", _values.Keys.Select(k => $"@{k}"));
-
-        string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames})";
+        builder.Append($"({columns}) VALUES ({paramNames})");
 
         if (_updateParameters.Count > 0)
         {
-            string updateClause = string.Join(", ", _updateParameters.Keys.Select(k => $"{k} = @{k}_update"));
-            query += $" ON DUPLICATE KEY UPDATE {updateClause}";
-
-            foreach (var key in _updateParameters.Keys)
-            {
-                _values[$"{key}_update"] = _updateParameters[key];
-            }
+            builder.Append(" ON DUPLICATE KEY UPDATE ");
+            builder.Append(string.Join(", ", _updateParameters.Keys.Select(k => $"{k} = {_updateParameters[k]}")));
         }
 
-        query += ";";
-        return await _database.ExecuteNonQueryAsync(query, _values);
+        builder.Append(';');
+
+        string query = builder.ToString();
+
+        return await _database.ExecuteNonQueryAsync(query);
     }
 
-    /// <summary>
-    /// Gets the default value for a given type.
-    /// </summary>
-    /// <param name="type">The type to get the default value for.</param>
-    /// <returns>The default value of the specified type.</returns>
-    private static object? GetDefault(Type type) => type.IsValueType ? Activator.CreateInstance(type) : null;
+    private void SetValuesFromObject(T entity)
+    {
+        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (FieldInfo prop in properties)
+        {
+            ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
+            string columnName = columnAttr?.Name ?? prop.Name;
+
+            object value = prop.GetValue(entity) ?? DBNull.Value;
+            _values[columnName] = value;
+        }
+    }
 }

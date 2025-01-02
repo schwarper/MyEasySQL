@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static MyEasySQL.Utils.RegexUtil;
+using MyEasySQL.SerializedQueries;
+using static MyEasySQL.Utils.Validator;
 
 namespace MyEasySQL.Queries;
 
@@ -22,11 +25,11 @@ public class InsertQuery
     /// </summary>
     /// <param name="database">The database instance to execute the query on.</param>
     /// <param name="table">The name of the table to insert data into.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="database"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when the <paramref name="table"/> name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="table"/> name is invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the <paramref name="database"/> is null.</exception>
     public InsertQuery(MySQL database, string table)
     {
-        Validate(table, ValidateType.Table);
+        ValidateName(table, ValidateType.Table);
 
         _database = database ?? throw new ArgumentNullException(nameof(database));
         _table = table;
@@ -38,10 +41,10 @@ public class InsertQuery
     /// <param name="column">The name of the column to insert data into.</param>
     /// <param name="value">The value to insert into the specified column.</param>
     /// <returns>The current <see cref="InsertQuery"/> instance, allowing for method chaining.</returns>
-    /// <exception cref="ArgumentException">Thrown when the <paramref name="column"/> name is invalid.</exception>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name is invalid.</exception>
     public InsertQuery Value(string column, object value)
     {
-        Validate(column, ValidateType.Column);
+        ValidateName(column, ValidateType.Column);
 
         _values[column] = value ?? DBNull.Value;
         return this;
@@ -53,11 +56,21 @@ public class InsertQuery
     /// <param name="column">The column to update.</param>
     /// <param name="value">The value to update the column with.</param>
     /// <returns>The current <see cref="InsertQuery"/> instance, allowing for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown if the <paramref name="column"/> name or <paramref name="value"/> is invalid.</exception>
     public InsertQuery OnDuplicateKeyUpdate(string column, object value)
     {
-        Validate(column, ValidateType.Column);
+        ValidateName(column, ValidateType.Column);
 
-        _updateParameters[column] = value ?? DBNull.Value;
+        if (value is string valueStr)
+        {
+            ValidateUpdateKey(valueStr);
+            _updateParameters[column] = valueStr;
+        }
+        else
+        {
+            _updateParameters[column] = value ?? DBNull.Value;
+        }
+
         return this;
     }
 
@@ -69,7 +82,7 @@ public class InsertQuery
     /// A task that represents the asynchronous operation. The task result contains the number of rows affected by the command.
     /// The task result contains the number of rows affected by the command.
     /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown when no values are specified for the insert operation.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if no values are specified for the insert operation.</exception>
     public async Task<int> ExecuteAsync()
     {
         if (_values.Count == 0)
@@ -77,23 +90,23 @@ public class InsertQuery
             throw new InvalidOperationException("No values specified for insert operation.");
         }
 
+        StringBuilder builder = new();
+        builder.Append($"INSERT INTO {_table} ");
+
         string columns = string.Join(", ", _values.Keys);
         string paramNames = string.Join(", ", _values.Keys.Select(k => $"@{k}"));
-        string query = $"INSERT INTO {_table} ({columns}) VALUES ({paramNames})";
+        builder.Append($"({columns}) VALUES ({paramNames})");
 
         if (_updateParameters.Count > 0)
         {
-            string updateClause = string.Join(", ", _updateParameters.Keys.Select(k => $"{k} = @{k}_update"));
-
-            query += $" ON DUPLICATE KEY UPDATE {updateClause}";
-
-            foreach (var key in _updateParameters.Keys)
-            {
-                _values[$"{key}_update"] = _updateParameters[key];
-            }
+            builder.Append(" ON DUPLICATE KEY UPDATE ");
+            builder.Append(string.Join(", ", _updateParameters.Keys.Select(k => $"{k} = {_updateParameters[k]}")));
         }
 
-        query += ";";
-        return await _database.ExecuteNonQueryAsync(query, _values);
+        builder.Append(';');
+
+        string query = builder.ToString();
+
+        return await _database.ExecuteNonQueryAsync(query);
     }
 }

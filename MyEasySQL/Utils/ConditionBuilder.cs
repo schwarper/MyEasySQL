@@ -19,7 +19,7 @@ public class ConditionBuilder
     /// <param name="value">The value to be compared with the column's value.</param>
     /// <param name="logicalOperator">An optional logical operator (AND, OR) to combine this condition with others.</param>
     /// <returns>The current instance of <see cref="ConditionBuilder"/> for method chaining.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the provided operator is not recognized.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the provided operator is not recognized.</exception>
     public ConditionBuilder Add(string column, Operators @operator, object value, LogicalOperators? logicalOperator = LogicalOperators.AND)
     {
         if (_conditions.Count > 0 && logicalOperator.HasValue)
@@ -38,7 +38,7 @@ public class ConditionBuilder
     /// </summary>
     /// <param name="operator">The operator enum to convert.</param>
     /// <returns>A string representing the SQL operator.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the provided operator is not recognized.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the provided operator is not recognized.</exception>
     private static string OperatorToString(Operators @operator) => @operator switch
     {
         Operators.EQUAL => "=",
