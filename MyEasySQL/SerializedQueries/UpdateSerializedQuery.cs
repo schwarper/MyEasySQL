@@ -41,9 +41,9 @@ public class SerializedUpdateQuery<T> where T : class, new()
     /// <exception cref="InvalidOperationException">Thrown when the object has no properties to update.</exception>
     internal SerializedUpdateQuery<T> SetObject(T entity)
     {
-        PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-        foreach (PropertyInfo prop in properties)
+        foreach (FieldInfo prop in properties)
         {
             ColumnAttribute? columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
             bool isPrimaryKey = prop.GetCustomAttribute<ColumnPrimaryKeyAttribute>() != null;

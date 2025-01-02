@@ -38,12 +38,12 @@ public class CreateTableSerializedQuery<T> where T : class, new()
     /// </summary>
     private void GenerateColumnsFromType()
     {
-        PropertyInfo[] properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        FieldInfo[] properties = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-        foreach (PropertyInfo prop in properties)
+        foreach (FieldInfo prop in properties)
         {
             string columnName = prop.Name;
-            string columnType = GetSqlType(prop.PropertyType);
+            string columnType = GetSqlType(prop.FieldType);
 
             StringBuilder columnDefinitionBuilder = new();
             columnDefinitionBuilder.Append($"{columnName} {columnType}");
