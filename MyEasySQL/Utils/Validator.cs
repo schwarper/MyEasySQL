@@ -8,7 +8,7 @@ internal static partial class Validator
     [GeneratedRegex(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled)] internal static partial Regex NameRegex();
     [GeneratedRegex(@"^\d+$", RegexOptions.Compiled)] internal static partial Regex SingleValueRegex();
     [GeneratedRegex(@"^\d+,\d+$", RegexOptions.Compiled)] internal static partial Regex MultiValueRegex();
-    [GeneratedRegex(@"^[a-zA-Z0-9_\+\-\*/\s]+$", RegexOptions.Compiled)] internal static partial Regex UpdateKeyRegex();
+    [GeneratedRegex(@"^[a-zA-Z0-9_\'\:\+\-\*/\s]+$", RegexOptions.Compiled)] internal static partial Regex UpdateKeyRegex();
 
     internal enum ValidateType
     {

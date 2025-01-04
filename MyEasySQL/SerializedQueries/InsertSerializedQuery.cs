@@ -84,7 +84,26 @@ public class InsertSerializedQuery<T> where T : class, new()
         builder.Append($"INSERT INTO {_table} ");
 
         string columns = string.Join(", ", _values.Keys);
-        string paramNames = string.Join(", ", _values.Keys.Select(k => $"@{k}"));
+        string paramNames = string.Join(", ", _values.Values.Select(k =>
+        {
+            switch (k)
+            {
+                case DBNull:
+                    return "NULL";
+
+                case bool b:
+                    return b ? "1" : "0";
+
+                case string str:
+                    return $"\"{str}\"";
+				
+                case DateTime dt:
+                    return $"'{dt:yyyy-MM-dd HH:mm:ss}'";
+
+                default:
+                    return k.ToString();
+            }
+        }));
         builder.Append($"({columns}) VALUES ({paramNames})");
 
         if (_updateParameters.Count > 0)
