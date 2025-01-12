@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MyEasySQL;
 using MyEasySQL.Attribute;
@@ -248,7 +249,7 @@ class Program
     }
     public static async Task SelectAsyncTest()
     {
-        System.Collections.Generic.IEnumerable<MyTableSerialized> query = await _sql.SelectSerialized<MyTableSerialized>()
+        IEnumerable<MyTableSerialized> query = await _sql.SelectSerialized<MyTableSerialized>()
             .Select("Age")
             .FromEntityTable()
             .Where(key => key.Age < 100)
@@ -256,7 +257,7 @@ class Program
             .Limit(5)
             .ExecuteAsync();
 
-        System.Collections.Generic.IEnumerable<MyTableSerialized> query2 = await _sql.SelectSerialized<MyTableSerialized>()
+        IEnumerable<MyTableSerialized> query2 = await _sql.SelectSerialized<MyTableSerialized>()
             .Select("*")
             .From("MyTableSerializedOther")
             .ExecuteAsync();
