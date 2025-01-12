@@ -146,7 +146,7 @@ public class SelectSerializedQuery<T> : BaseQuery
     /// </summary>
     /// <returns>An enumerable of the selected entities.</returns>
     /// <exception cref="MyEasySQLException">Thrown if the database instance is not initialized.</exception>
-    public async Task<IEnumerable<T>> ExecuteAsync()
+    public async Task<IEnumerable<T>> ReadAsync()
     {
         MyEasySQLException.ThrowIfDatabaseNotInitialized(_database);
 

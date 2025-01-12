@@ -255,12 +255,12 @@ class Program
             .Where(key => key.Age < 100)
             .OrderBy(key => key.Age, OrderType.ASC)
             .Limit(5)
-            .ExecuteAsync();
+            .ReadAsync();
 
         IEnumerable<MyTableSerialized> query2 = await _sql.SelectSerialized<MyTableSerialized>()
             .Select("*")
             .From("MyTableSerializedOther")
-            .ExecuteAsync();
+            .ReadAsync();
 
         SendConsoleMessage($"Select 1:", ConsoleColor.Red);
         foreach (MyTableSerialized q in query)
