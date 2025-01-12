@@ -248,7 +248,7 @@ class Program
     }
     public static async Task SelectAsyncTest()
     {
-        var query = await _sql.SelectSerialized<MyTableSerialized>()
+        System.Collections.Generic.IEnumerable<MyTableSerialized> query = await _sql.SelectSerialized<MyTableSerialized>()
             .Select("Age")
             .FromEntityTable()
             .Where(key => key.Age < 100)
@@ -256,17 +256,17 @@ class Program
             .Limit(5)
             .ExecuteAsync();
 
-        var query2 = await _sql.SelectSerialized<MyTableSerialized>()
+        System.Collections.Generic.IEnumerable<MyTableSerialized> query2 = await _sql.SelectSerialized<MyTableSerialized>()
             .Select("*")
             .From("MyTableSerializedOther")
             .ExecuteAsync();
 
         SendConsoleMessage($"Select 1:", ConsoleColor.Red);
-        foreach (var q in query)
+        foreach (MyTableSerialized q in query)
             Console.WriteLine($"Age => {q.Age},{q.Status}");
 
         SendConsoleMessage($"Select 2:", ConsoleColor.DarkRed);
-        foreach (var q in query2)
+        foreach (MyTableSerialized q in query2)
             Console.WriteLine($"{q.Account} {q.Email} {q.Status}...");
     }
     public static async Task DeleteAsyncTest()
