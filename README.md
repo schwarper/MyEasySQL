@@ -15,4 +15,4 @@ Run `dotnet add package MyEasySQL`
 - **Asynchronous Operations**: Perform database operations asynchronously for improved performance.
 
 # Example
-See [MyEasySQLTest](https://github.com/schwarper/MyEasySQL/blob/main/MyEasySQLTest/MyEasySQLTest.cs) for an example. You can learn the usage with examples with explanations.
+See [MyEasySQLTest](https://github.com/schwarper/MyEasySQL/blob/main/MyEasySQLTest/MyEasySQLTest.cs) for an example.
